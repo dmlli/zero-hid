@@ -54,7 +54,7 @@ class Keyboard:
         if len(mods) == 1:
             mods = mods[0]
         else:
-            mods = reduce(operator.and_, mods, 0)
+            mods = reduce(operator.add, mods)
         send_keystroke(self.dev, mods, key_code, release=release)
 
 
