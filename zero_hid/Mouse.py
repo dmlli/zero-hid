@@ -6,12 +6,17 @@ class RelativeMoveRangeError(Exception):
     pass
 
 class Mouse:
-    def __init__(self, dev = None, absolute = False) -> None:
+    def __init__(self, dev = None, absolute = False, ratio = (1, 1)) -> None:
         self.__setup_device(dev, absolute)
         self.__setup_move(absolute)
         self.__send_mouse_event = absolute_mouse_event if absolute else relative_mouse_event # dynamic mouse event method
         self.buttons_state = 0x0
-        
+        self.ratio = ratio
+
+    def scaled_pos(self, x, y):
+        x = round(x * self.ratio[0])
+        y = round(y * self.ratio[1])
+        return x, y
 
     def __setup_device(self, dev, absolute: bool):
         if dev is None:
@@ -72,6 +77,7 @@ class Mouse:
         """
         Control the way you like
         """
+        x, y = self.scaled_pos(x, y)
         self.__send_mouse_event(self.dev, self.buttons_state, x, y, scroll_y, scroll_x)
 
     def __move_relative(self, x, y):
@@ -83,6 +89,7 @@ class Mouse:
             raise RelativeMoveRangeError(f"Value of x: {x} out of range (-127 - 127)")
         if not -127 <= y <= 127:
             RelativeMoveRangeError(f"Value of y: {y} out of range (-127 - 127)")
+        x, y = self.scaled_pos(x, y)
         self.__send_mouse_event(self.dev, self.buttons_state, x, y, 0, 0)
         
     def __move_absolute(self, x, y):
@@ -90,6 +97,7 @@ class Mouse:
             raise RelativeMoveRangeError(f"Value of x: {x} out of range (0 - 65535)")
         if not 0 <= y <= 65535:
             RelativeMoveRangeError(f"Value of y: {y} out of range (0 - 65535)")
+        x, y = self.scaled_pos(x, y)
         self.__send_mouse_event(self.dev, self.buttons_state, x, y, 0, 0)
         
         
